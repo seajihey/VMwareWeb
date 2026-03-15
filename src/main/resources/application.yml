@@ -1,0 +1,36 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/vm_portal
+    username: postgres
+    password: 1234
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  thymeleaf:
+    cache: false
+
+server:
+  port: 8080
+
+vcenter:
+  url: https://10.30.10.102/sdk
+  username: administrator@seoul.seung.fisa
+  password: VMware1!
+  datacenter: Seoul-DC
+  cluster: Seoul-Cluster
+  network: VM Network
+  datastore: vsanDatastore
+  rocky-template: rocky-template
+
+guacamole:
+  base-url: http://10.30.10.70:8080/guacamole
+  username: guacadmin
+  password: guacadmin
+  datasource: mysql

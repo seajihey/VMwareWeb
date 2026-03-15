@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>요청 목록</title>
+</head>
+<body>
+<h1>요청 목록</h1>
+
+<a th:href="@{/}">새 요청 만들기</a>
+<br><br>
+
+<table border="1">
+  <thead>
+  <tr>
+    <th>ID</th>
+    <th>VM 이름</th>
+    <th>OS</th>
+    <th>CPU</th>
+    <th>메모리</th>
+    <th>템플릿</th>
+    <th>클러스터</th>
+    <th>리소스풀</th>
+    <th>네트워크</th>
+    <th>데이터스토어</th>
+    <th>상태</th>
+    <th>IP</th>
+    <th>에러</th>
+    <th>생성시각</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="req : ${requests}">
+    <td th:text="${req.id}"></td>
+    <td th:text="${req.vmName}"></td>
+    <td th:text="${req.osType}"></td>
+    <td th:text="${req.cpu}"></td>
+    <td th:text="${req.memoryGb}"></td>
+    <td th:text="${req.templateName}"></td>
+    <td th:text="${req.clusterName}"></td>
+    <td th:text="${req.resourcePoolName}"></td>
+    <td th:text="${req.networkName}"></td>
+    <td th:text="${req.datastoreName}"></td>
+    <td th:text="${req.status}"></td>
+    <td th:text="${req.ipAddress}"></td>
+    <td th:text="${req.errorMessage}"></td>
+    <td th:text="${req.createdAt}"></td>
+  </tr>
+  </tbody>
+</table>
+</body>
+</html>

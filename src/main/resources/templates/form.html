@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>실습 서버 생성</title>
+</head>
+<body>
+<h1>실습 서버 생성</h1>
+
+<p>위치: 서울</p>
+<p>클러스터: 자동 선택</p>
+<p>리소스 풀: 자동 선택</p>
+<p>네트워크: 자동 선택</p>
+<p>데이터스토어: 자동 선택</p>
+
+<form th:action="@{/requests}" th:object="${createProvisionRequestDto}" method="post">
+  <div>
+    <label>VM 이름:</label>
+    <input type="text" th:field="*{vmName}">
+    <div th:if="${#fields.hasErrors('vmName')}" th:errors="*{vmName}"></div>
+  </div>
+  <br>
+
+  <div>
+    <label>OS 종류:</label>
+    <select th:field="*{osType}">
+      <option value="">선택하세요</option>
+      <option value="Ubuntu">Ubuntu</option>
+      <option value="Windows">Windows</option>
+    </select>
+    <div th:if="${#fields.hasErrors('osType')}" th:errors="*{osType}"></div>
+  </div>
+  <br>
+
+  <div>
+    <label>CPU:</label>
+    <input type="number" th:field="*{cpu}">
+    <div th:if="${#fields.hasErrors('cpu')}" th:errors="*{cpu}"></div>
+  </div>
+  <br>
+
+  <div>
+    <label>메모리(GB):</label>
+    <input type="number" th:field="*{memoryGb}">
+    <div th:if="${#fields.hasErrors('memoryGb')}" th:errors="*{memoryGb}"></div>
+  </div>
+  <br>
+
+  <button type="submit">생성 요청</button>
+</form>
+
+<br>
+<a th:href="@{/requests}">요청 목록 보기</a>
+</body>
+</html>
