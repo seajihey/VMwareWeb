@@ -1,181 +1,316 @@
-# VMware-TeamLab
+# [ ⚙ VMware VM Provisioning Portal ]
 
-## 💻 구성도 빡!!!
+Spring Boot 기반으로 만든 **VMware 가상머신 배포 자동화 웹 포털**입니다.  
 
-대충 이미지 네트워크 구성도 빡!
+vCenter에 직접 접속해 템플릿, CPU, 메모리, 네트워크 등을 수동으로 선택하는 대신, 웹 화면에서 배포 정보를 입력하면 **vCenter API를 통해 실제 VM을 생성**하고, 이후 **Guacamole을 이용한 원격 접속 URL까지 생성**할 수 있도록 구현했습니다. 💻
+
+현재는 배포 환경이 아니기에  **Rocky Linux VM 배포**를 기준으로 구성했습니다. 
+
+***
+
+## 프로젝트 소개 📚
+
+-VMware 환경에서 VM을 여러 대 반복해서 만들어야 하는 경우, vCenter 콘솔에서 매번 직접 설정하는 방식은 시간이 오래 걸리고 실수 가능성도 큽니다.  
+
+따라서 이 프로젝트는 반복 작업을 웹 기반으로 자동화하기 위해 만들었습니다. ✨
+
+[사용자]는 웹 페이지에서 VM 이름, CPU, 메모리, IP 등의 정보를 입력하고,  
+[백엔드]에서는 이를 받아 vCenter와 통신하여 템플릿 기반으로 VM을 배포합니다.
+
+배포가 끝나면 결과를 반환하고, 원격 접속 정보와 함께 Guacamole 접속 URL을 생성합니다. 🔗
+
+***
+
+## 주요 메서드 ✅
+
+
+### ⚙️ VM 배포 요청
+- 웹 화면에서 VM 배포 요청
+
+### ⚙️ vCenter 연결 및 리소스 검증
+- VMware vCenter 연결 테스트
+- 배포 대상 리소스 검증
+    - Datacenter / Cluster / Network / Datastore / Template
+
+### ⚙️ VM 생성 및 설정
+- 템플릿 기반 VM Clone
+- CPU / Memory 설정 반영
+- 네트워크 재매핑
+- Guest Customization 기반 IP 설정
+
+### ⚙️ 결과 조회 및 접속
+- 생성된 VM 정보 조회
+- Guacamole 원격 접속 URL 생성
+
+### ⚙️ 요청 이력 관리
+- VM 배포 요청 이력 DB 저장
+
+***
+
+## 전체 흐름 🔄
+
+```text
+웹 UI
+  ↓
+Spring Boot Controller
+  ↓
+Service 계층
+  ↓
+vCenter API 연동
+  ↓
+Template 기반 VM Clone
+  ↓
+Guest Customization / 네트워크 설정
+  ↓
+VM 생성 완료
+  ↓
+Guacamole API 연동
+  ↓
+원격 접속 URL 생성
+```
+
+***
+
+## 기술 스택 🛠️
+
+| **Category** | Technology |
+|---|---|
+| **Backend** | Spring Boot |
+| **Frontend** | HTML, CSS, JavaScript, Thymeleaf |
+| **Database** | PostgreSQL |
+| **ORM** | Spring Data JPA |
+| **Build Tool** | Gradle |
+| **Language** | Java 17 |
+| **Virtualization** | VMware vSphere, vCenter |
+| **Remote Access** | Apache Guacamole |
+
+***
+
+## 프로젝트 구조 🗂️
+
+```text
+src/main/java/com/vmportal
+ ┣ config
+ ┃ ┣ GuacamoleProperties.java
+ ┃ ┣ SecurityConfig.java
+ ┃ ┗ VCenterProperties.java
+ ┣ controller
+ ┃ ┣ PageController.java
+ ┃ ┣ ProvisionRequestController.java
+ ┃ ┗ VCenterController.java
+ ┣ dto
+ ┃ ┣ CreateGuacSessionRequest.java
+ ┃ ┣ CreateProvisionRequestDto.java
+ ┃ ┣ DeployVmRequest.java
+ ┃ ┣ GuacConnectionCreateRequest.java
+ ┃ ┣ GuacConnectionCreateResponse.java
+ ┃ ┣ GuacLoginResponse.java
+ ┃ ┗ OpenRemoteConsoleRequest.java
+ ┣ entity
+ ┃ ┣ ProvisionRequest.java
+ ┃ ┗ ProvisionStatus.java
+ ┣ repository
+ ┃ ┗ ProvisionRequestRepository.java
+ ┣ service
+ ┃ ┣ GuacamoleService.java
+ ┃ ┣ ProvisionRequestService.java
+ ┃ ┗ VCenterService.java
+ ┗ VmportalApplication.java
+
+src/main/resources
+ ┣ templates
+ ┃ ┣ deploy-form.html
+ ┃ ┣ form.html
+ ┃ ┣ requests.html
+ ┃ ┗ css.css
+ ┗ application.yml
+```
+
+***
+
+## 사용한 VMware API 🖥️
+
+이 프로젝트는 **Java 기반 VMware SDK**를 사용하여 vCenter와 통신합니다.  
+구현 과정에서 주로 사용한 클래스는 다음과 같습니다.
+
+| 클래스                          | 역할                                                   |
+| ---------------------------- | ---------------------------------------------------- |
+| `ServiceInstance`            | vCenter 서버 연결                                        |
+| `InventoryNavigator`         | Datacenter, Cluster, Network, Datastore, Template 검색 |
+| `VirtualMachine`             | VM 조회 및 제어                                           |
+| `VirtualMachineCloneSpec`    | VM Clone 설정                                          |
+| `VirtualMachineRelocateSpec` | Datastore / Resource Pool 설정                         |
+| `VirtualMachineConfigSpec`   | CPU / Memory 설정                                      |
+| `CustomizationSpec`          | Guest OS IP / Hostname 설정                            |
+| `Task`                       | VM 생성 작업 실행                                          |
+
+즉, vCenter UI에서 하던 작업을 코드로 자동화한 구조입니다. 
+
+***
+
+## 사용한 Guacamole API 🌐
 
-고? 사용한 기술 빡!!
+원격 접속 기능은 **Apache Guacamole REST API**를 이용해 구현했습니다.
 
-## 📘 Index
+| API                                          | 역할            |
+| -------------------------------------------- | ------------- |
+| `/api/tokens`                                | Guacamole 로그인 |
+| `/api/session/data/{datasource}/connections` | 원격 접속 연결 생성   |
 
-[👩🏻‍💻 About Team Members](#-about-team-members)
+Guacamole API를 통해 VM 생성 이후 SSH 또는 RDP 접속용 Connection을 만들고,  
+브라우저에서 바로 열 수 있는 URL을 생성합니다. 
 
-[🤝 Day 01 - Strategic Planning & Conceptual Design](#-day-01---strategic-planning--conceptual-design)
+***
 
-[🌐 Day 02 - Building Core Infrastructure & Management Plane](#-day-02---building-core-infrastructure--management-plane)
+## application.yml 예시 📄
 
-[🧑🏻‍💻 Day 03 - Detailing Our Infrastructure - I](#-day-03---detailing-our-infrastructure---i)
+> 실제 운영 환경에서는 비밀번호나 주요 접속 정보는 환경 변수로 분리해야 합니다. <br>
+> 실제 vCenter, DB, Guacamole 접속 변수를 넣어주세요.
+> 아래 예시는 로컬 테스트용입니다. ⚠️
 
-[👩🏻‍💻 Day 04 - Detailing Our Infrastructure - II](#-day-04---detailing-our-infrastructure---ii)
+```yml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/vm_portal
+    username: postgres
+    password: 1234
+    driver-class-name: org.postgresql.Driver
 
-[👩🏻‍💻 Day 05 - Finale (All for vSAN)](#-day-05---finale-all-for-vsan)
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
 
-## 👩🏻‍💻 About Team Members
+  thymeleaf:
+    cache: false
 
-추가좀 해주실분?????
+server:
+  port: 8080
 
-실습한거 중에 이미지가 많은건 따로 파일 만들어서 링크하면 좋을듯!
+vcenter:
+  url: https://10.30.10.102/sdk
+  username: administrator@seoul.seung.fisa
+  password: VMware1!
+  datacenter: Seoul-DC
+  cluster: Seoul-Cluster
+  network: VM Network
+  datastore: vsanDatastore
+  rocky-template: rocky-template
 
-## 🤝 Day 01 - Strategic Planning & Conceptual Design
+guacamole:
+  base-url: http://10.30.10.70:8080/guacamole
+  username: guacadmin
+  password: guacadmin
+  datasource: mysql
+```
 
-> **2026.03.06 금요일**
+***
 
-### 1. 그래서 우리의 목표는 무엇인가
+## 실행 방법 ▶️
 
-### 2. 그래서 왜 클러스터를 했지??
+### 1. PostgreSQL 실행
 
-### 3. 그렇게 우리는 영원히 ESXi를 설치하려고 시도를 햇따
+Docker Compose로 DB를 먼저 실행합니다.
 
-## 🌐 Day 02 - Building Core Infrastructure & Management Plane
+```bash
+docker compose up -d
+```
 
-> **2026.03.10 화요일**
+### 2. Spring Boot 실행
 
-### 1. WS-ESXi 호스트에 Management Network 설정하기 
+```bash
+./gradlew bootRun
+```
 
-이게 그 실제로는 하나의 Workstation이지만, ESXi를 설치를 하고, 그 위에 여러 또 ESXi와 다른 VM을 설치
+Windows 환경에서는:
 
-실제로는 하나이지만 내부에서는 마치 두개의 지역 (Area)가 있다고 생각을 하고 구성
+```bash
+gradlew.bat bootRun
+```
 
-그래서 지역을 연결하는 라우터도 필요하고, 이것저것 필요하고 DNS NAS도 각각 지역에 하나씩
+### 3. 접속
 
-### 2. Jeju Area용 vSwitch 및 Management Network 설정하기
+브라우저에서 아래 주소로 접속합니다.
 
-설치 과정에서 Seoul Area의 Management Network를 설정 했으니, Jeju 용 Switch를 만들어서 Jeju Area의 Management Network도 설정하기
+```text
+http://localhost:8080/deploy-form
+```
 
-### 3. Windows Server 2022 VM 생성 및 DNS 서버 역할 설치하기
 
-차후에 vCenter Server Appliance 설치할 때, DNS 서버가 필요하기 때문에, Windows Server 2022 VM을 만들어서 DNS 서버 역할을 설치하기
+***
 
-### 4. VyOS VM 생성 및 Seoul Area 및 Jeju Area 간 라우팅 설정하기
+## 핵심 구현 포인트 🔍
 
-위의 작업과 동시에 진행, 라우터 역할을 하는 VyOS VM을 두대 만들고, 각각 Seoul Area와 Jeju Area에 하나씩 배치, 그리고 라우팅 설정을 해서 두 지역 간 통신이 가능하도록 설정하기
+### 1. 설정값 분리
 
-강의실 외부 인터넷도 연결해서, NAT를 통해서 Management Network에서 인터넷도 사용할 수 있도록 설정하기
+`application.yml`의 값을 `@ConfigurationProperties`로 바인딩하여  
+vCenter와 Guacamole 설정을 객체 형태로 관리했습니다. 
 
-두 라우터를 연결하기 위해서 스위치를 사용, 스위치를 사용한 특별한 이유는 ESXi에서 VM끼리 직접 케이블로 연결하는게 안되기 때문에, 라우터 사이의 연결 (WAN 구간)을 해야하는데, 이때 같은 네트워크면 상관이 없기 때문에 마치 Switch를 Repeater 처럼 사용해서 연결
+### 2. Entity 기반 이력 관리
 
-### 5. 실습용 Seoul-ESXi 및 Jeju-ESXi 호스트 설치 및 구성하기
+`ProvisionRequest` 엔티티를 통해 배포 요청 정보, 상태, VM 정보, 원격 접속 정보, 에러 메시지를 함께 저장했습니다. 
+### 3. DTO 분리
 
-일단 WS-ESXi 호스트위에 각 지역별로 3개씩 ESXi 호스트를 설치하고 총 6개의 ESXi 호스트를 구성
+웹 요청용 DTO와 내부 배포 로직용 DTO를 분리하여  
+외부 요청 형식과 내부 처리 구조가 섞이지 않도록 구성했습니다. 
 
-그리고 위에서 설정한 라우팅이 잘 되는지 확인하고, 인터넷도 되는지 확인하고 조아쓰
+### 4. 템플릿 기반 VM Clone
 
-### 6. vCenter Server Appliance 설치 및 구성하기
+VMware Template을 기준으로 새 VM을 생성하고,  
+배포 시점에 CPU / Memory / Network / IP 설정을 반영할 수 있도록 했습니다. 
 
-밥 먹기 전에 설치를 눌러두고, Stage I이 잘 되기를 기도하고, Stage II를 진행하면서 설치가 잘 되는지 확인하기
+### 5. Guacamole 연동
 
-이때 Seoul Area는 SSO 도메인을 생성
+VM 생성 후 Guacamole 연결을 자동으로 생성해  
+웹 브라우저에서 바로 원격 접속할 수 있도록 했습니다. 
 
-이후 Jeju Area는 Seoul Area의 SSO 도메인에 Join 하는 방식으로 설치 진행
+***
 
-트러블슈팅 : 자기애가 넘치는 나머지 도메인을 seungmin.min으로 설정해버린 나 대단해
+## 한계 및 개선 포인트 🧪
 
-### 7. 각 지역용 Switch Port Group 설정하기
+현재 프로젝트는 테스트 목적상 다음과 같은 제한이 있습니다.
 
-라우터 연결되는 포트 그룹은 그 트렁크로
+* Rocky Linux 템플릿 기준으로 우선 구현
+* 비밀번호 및 접속 정보 일부 하드코딩
+* Guacamole 연결 생성 시 계정 정보 고정
+* 운영 환경용 보안 처리 미적용
 
-다른 지역은 VLAN Tagging으로 근데 그 우리 공유하는 실제 물리 스위치에서 VLAN 설정을 할 수 없기 때문에 Management Network는 VLAN 없이, 그리고 다른 지역은 VLAN Tagging으로 설정하기
+향후에는 아래와 같이 확장할 수 있습니다. 
 
-### 8. WS-ESXi 호스트와 Seoul-ESXi 연결 (Jeju-ESXi도 동일하게 연결)
+* Windows / Ubuntu 등 다중 템플릿 지원
+* 환경 변수 기반 보안 설정 분리
+* 사용자별 인증 및 권한 관리
+* 배포 이력 조회 UI 고도화
+* 비동기 상태 추적 및 Task Polling 개선
 
-그 각각의 ESXi에서 용도에 따른 스위치를 생성 (3개, Management, Storage, vMotion) 그리고 각각의 스위치에 포트 그룹을 만들어서 연결하기
+***
 
-이때 태그를 붙이면 이중 태그가 되서 그 어떠한 스위치에서도 태그는 붙이지 않도록 설정하기
+## 느낀 점 💭
 
-태그는 L2 단계에서 하나의 기기가 붙인다고 생각하기
+이번 프로젝트는 단순히 화면을 만드는 것이 아니라,  
+**vCenter에서 수행하던 인프라 작업을 웹 서비스와 연결해 자동화했다는 점**에서 의미가 있었습니다.
 
-### 9. TrueNAS VM 생성 및 iSCSI Target 설정하기
+특히 다음 두 가지를 함께 다룰 수 있었습니다.
 
-이 친구는 지역별 ESXi에서 공유해서 사용할 스토리지 역할을 하고
+* VMware vSphere API를 이용한 VM Provisioning 자동화
+* Apache Guacamole REST API를 이용한 웹 기반 원격 접속 자동화
 
-그러니까 iSCSI Target 역할을 하도록 구성
+즉, 이 프로젝트는 단순한 CRUD 웹 프로젝트가 아니라  
+**가상화 인프라와 백엔드 서비스를 연결한 자동화 포털**이라고 볼 수 있습니다. 🌉
 
-### 10. ESXi 호스트에서 iSCSI Initiator 설정하기
+***
 
-그리고 ESXi 호스트에서 iSCSI Initiator 설정을 해서 TrueNAS의 iSCSI Target에 연결하기
+## 참고 📎
 
-## 🧑🏻‍💻 Day 03 - Detailing Our Infrastructure - I
+* VMware vSphere Web Services SDK
+* VMware Developer Portal
+* Apache Guacamole REST API
 
-> **2026.03.11 수요일**
+***
 
-### 1. ESXi Account
+## Author 👩‍💻
 
-루트 계정 비활성화도 해보고 그리고 계정도 하나 만들어서 그 계정으로 로그인도 해보고
-
-### 2. Lockdown Mode
-
-| 모드 | 사용자 구분 | DCUI | SSH / Shell | Host Client | vCenter |
-| --- | --- | --- | --- | --- | --- |
-| 비활성 | 일반 / 예외 | O | O | O | O |
-| 노말 잠금 (Normal) | 일반 사용자 | X | X | X | O |
-|  | 예외 사용자 | O | O | O | O |
-| 엄격 잠금 (Strict) | 일반 사용자 | X | X | X | O |
-|  | 예외 사용자 | X (서비스 정지) | O | O | O |
-
-### 3. VM Tag
-
-태그를 붙이면 내부 관리가 쉽다~
-
-그런데 검색이 매우 귀찮은
-
-### 4. VM Template
-
-윈도우는 삽질을 했고
-
-리눅스는 귀찮다
-
-### 5. Content Library
-
-엘리트 집단이라 미리한거
-
-서울이 만들면 제주는 구독하는 방법
-
-### 6. Alarm
-
-아침에 듣기 싫은거
-
-### 7. DRS: Distributed Resource Scheduler
-
-VM이 어느 호스트에서 실행되는게 좋을지 알아서 결정해주는 기능
-
-F1의 그 DRS 아님
-
-### 8. Autostart, Shutdown
-
-ESXi가 호스트가 켜질 때 자동으로 켜지는 Vm 설정
-
-그리고 종료가 될 때 어떻게 할껀지
-
-### 9. Affinity Rule
-
-깐부
-
-## 👩🏻‍💻 Day 04 - Detailing Our Infrastructure - II
-
-> **2026.03.12 목요일**
-
-### 1. Resource Pool
-
-내일 하자
-
-### 2. HA: High Availability
-
-### 3. FT: Fault Tolerance
-
-### 4. vApp 
-
-### 5. vCenter Backup
-
-### 6. About vSAN
-
-## 👩🏻‍💻 Day 05 - Finale (All for vSAN)
+**SeoJiHye**
