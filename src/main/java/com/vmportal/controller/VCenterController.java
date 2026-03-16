@@ -59,7 +59,7 @@ public class VCenterController {
 
 			String username = (request.getUsername() != null && !request.getUsername().isBlank())
 				? request.getUsername()
-				: (osType.contains("windows") ? "Administrator" : "rocky");
+				: (osType.contains("windows") ? "Administrator" : "fisa");
 
 			String connectionName = (request.getVmName() != null && !request.getVmName().isBlank())
 				? request.getVmName()

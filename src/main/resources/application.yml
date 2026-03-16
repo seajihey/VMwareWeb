@@ -27,7 +27,7 @@ vcenter:
   cluster: Seoul-Cluster
   network: VM Network
   datastore: vsanDatastore
-  rocky-template: rocky-template
+  rocky-template: rocky-custom
 
 guacamole:
   base-url: http://10.30.10.70:8080/guacamole

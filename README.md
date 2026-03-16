@@ -1,6 +1,6 @@
 # [ ⚙ VMware VM Provisioning Portal ]
 ![img_1.png](img_1.png)
-![img.png](img.png)
+![img_2.png](img_2.png)
 Spring Boot 기반으로 만든 **VMware 가상머신 배포 자동화 웹 포털**입니다.
 
 vCenter에 직접 접속해 템플릿, CPU, 메모리, 네트워크 등을 수동으로 선택하는 대신, 웹 화면에서 배포 정보를 입력하면 **vCenter API를 통해 실제 VM을 생성**하고, 이후 **Guacamole을 이용한 원격 접속 URL까지 생성**할 수 있도록 구현했습니다. 💻

@@ -530,7 +530,7 @@ public class VCenterService {
 		} else {
 			info.put("remoteProtocol", "ssh");
 			info.put("remotePort", 22);
-			info.put("remoteUsername", "rocky");
+			info.put("remoteUsername", "fisa");
 		}
 
 		info.put("guacReady", guestIp != null && !guestIp.isBlank());

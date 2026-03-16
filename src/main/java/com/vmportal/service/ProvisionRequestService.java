@@ -58,7 +58,7 @@ public class ProvisionRequestService {
 
 	private String resolveTemplateName(String osType) {
 		if ("Ubuntu".equalsIgnoreCase(osType)) {
-			return "tmpl-ubuntu-2404";
+			return "rocky-custom";
 		} else if ("Windows".equalsIgnoreCase(osType)) {
 			return "tmpl-win-2022";
 		}
